@@ -82,3 +82,8 @@ export_env_dir() {
     fi
   fi
 }
+
+function valid_project() {
+  SDK_TYPE=`python3 -c "from xml.etree.ElementTree import ElementTree;import io;print(ElementTree(file=io.FileIO('$1')).getroot().attrib['Sdk'])"`
+  [ "$SDK_TYPE" = "Microsoft.NET.Sdk.Web" ]
+}

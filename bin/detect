@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 # bin/detect <build-dir>
 
-if [ -n "$(find $1 -maxdepth 5 -iname Startup.cs)" ]; then
-  echo "ASP.NET Core" && exit 0
-else
-  echo "no" && exit 1
-fi
+BP_DIR="$(cd $(dirname $0)/.. && pwd)"
+
+# We need the valid_project function
+source $BP_DIR/lib/utils
+
+for project in $(find $1 -name *.csproj); do
+  if valid_project $project; then
+    echo Found $(basename $project)
+    exit 0
+  fi
+done
+
+echo Can't find a proper project

@@ -38,7 +38,28 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 cd $BUILD_DIR
 dotnet --info
 
-PROJECT_FILE=$(x=$(dirname $(find ${BUILD_DIR} -maxdepth 5 -iname Startup.cs | head -1)); while [[ "$x" =~ $BUILD_DIR ]] ; do find "$x" -maxdepth 1 -name *.csproj; x=`dirname "$x"`; done)
+# Now we need to find a valid web project
+PROJECT_COUNT=0
+PROJECT_FILES=""
+
+for PROJECT_FILE in $(find $BUILD_DIR -name *.csproj); do
+  if valid_project $PROJECT_FILE; then
+    PROJECT_FILES="$PROJECT_FILES $PROJECT_FILE"
+    PROJECT_COUNT=$(( $PROJECT_COUNT + 1 ))
+  fi
+done
+
+# Now we need to select the project
+if [[ $PROJECT_COUNT = 0 ]]; then
+  echo "Error: Can't find a valid project to build."
+  exit 1
+elif [[ $PROJECT_COUNT > 1 ]]; then
+  echo "Error: Multi-project solutions aren't supported yet."
+  exit 1
+else
+  for PFILE in $PROJECT_FILES; do PROJECT_FILE=$PFILE; done
+fi
+
 PROJECT_NAME=$(basename ${PROJECT_FILE%.*})
 
 echo "restore ${PROJECT_FILE}"
